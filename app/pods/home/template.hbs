@@ -1,0 +1,18 @@
+{{page-title 'Home'}}
+
+<div>
+  Espression:
+  {{this.stepsPrefix.expression}}
+</div>
+<Example @steps={{this.stepsPrefix.steps}} />
+<br />
+<div>
+  Espression:
+  {{this.stepsPostfix.expression}}
+</div>
+<Example @steps={{this.stepsPostfix.steps}} />
+<div>-----------------------------------------------------------------</div>
+
+<ExampleAsEmberTable @steps={{this.stepsPostfix.steps}} />
+
+{{outlet}}

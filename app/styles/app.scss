@@ -1,0 +1,6 @@
+@import 'bootstrap';
+@import 'ember-table/default';
+
+.table-container {
+  overflow-x: auto; /* Ensure horizontal scrolling if necessary */
+}

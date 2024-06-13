@@ -1,0 +1,8 @@
+<EmberTable as |t|>
+  <t.head
+    @columns={{this.columns}}
+    @enableResize={{true}}
+    @enableReorder={{true}}
+  />
+  <t.body @rows={{@steps}} />
+</EmberTable>

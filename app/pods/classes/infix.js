@@ -31,9 +31,69 @@ export default class Infix {
       Stack: stack.slice(),
       Result: result.slice(),
       Type: type,
-      Value: value,
+      Value: value || '', // Ustawienie na pustą wartość jeśli brak tokenu
       Precedence: precedence,
     });
+  }
+
+  // Przetwarzanie tokena w zależności od jego typu
+  processToken(token, stack, output, steps, type, remainingExpression) {
+    if (/\d/.test(token) || /[a-zA-Z]/.test(token)) {
+      output.push(token);
+      this.addStep(steps, remainingExpression, stack, output, type, token, 0);
+    } else if (token === '(') {
+      stack.push(token);
+      this.addStep(
+        steps,
+        remainingExpression,
+        stack,
+        output,
+        'Left Parenthesis',
+        token,
+        0
+      );
+    } else if (token === ')') {
+      this.processRightParenthesis(stack, output, steps, remainingExpression);
+    } else if (this.isOperator(token)) {
+      this.processOperator(token, stack, output, steps, remainingExpression);
+    }
+  }
+
+  // Przetwarzanie prawego nawiasu
+  processRightParenthesis(stack, output, steps, remainingExpression) {
+    while (stack.length && stack[stack.length - 1] !== '(') {
+      output.push(stack.pop());
+    }
+    stack.pop(); // Usunięcie lewego nawiasu ze stosu
+    this.addStep(
+      steps,
+      remainingExpression,
+      stack,
+      output,
+      'Right Parenthesis',
+      ')',
+      0
+    );
+  }
+
+  // Przetwarzanie operatora
+  processOperator(token, stack, output, steps, remainingExpression) {
+    while (
+      stack.length &&
+      this.precedence(stack[stack.length - 1]) >= this.precedence(token)
+    ) {
+      output.push(stack.pop());
+    }
+    stack.push(token);
+    this.addStep(
+      steps,
+      remainingExpression,
+      stack,
+      output,
+      'Operator',
+      token,
+      this.precedence(token)
+    );
   }
 
   // Funkcja do konwersji wyrażenia infiksowego na postfiksowe
@@ -42,90 +102,24 @@ export default class Infix {
     let output = [];
     let stack = [];
     let tokens = this.expression.match(/\S+/g); // Rozdzielanie wyrażenia na tokeny
+    let remainingExpression = this.expression;
 
-    for (let token of tokens) {
-      if (/\d/.test(token) || /[a-zA-Z]/.test(token)) {
-        // Jeśli token jest liczbą lub zmienną
-        output.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Operand',
-          token,
-          0
-        );
-      } else if (token === '(') {
-        // Jeśli token jest lewym nawiasem
-        stack.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Left Parenthesis',
-          token,
-          0
-        );
-      } else if (token === ')') {
-        // Jeśli token jest prawym nawiasem
-        while (stack.length && stack[stack.length - 1] !== '(') {
-          output.push(stack.pop());
-          this.addStep(
-            steps,
-            this.expression,
-            stack,
-            output,
-            'Operator',
-            token,
-            0
-          );
-        }
-        stack.pop(); // Usunięcie lewego nawiasu ze stosu
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Right Parenthesis',
-          token,
-          0
-        );
-      } else if (this.isOperator(token)) {
-        // Jeśli token jest operatorem
-        while (
-          stack.length &&
-          this.precedence(stack[stack.length - 1]) >= this.precedence(token)
-        ) {
-          output.push(stack.pop());
-          this.addStep(
-            steps,
-            this.expression,
-            stack,
-            output,
-            'Operator',
-            token,
-            this.precedence(token)
-          );
-        }
-        stack.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Operator',
-          token,
-          this.precedence(token)
-        );
-      }
-    }
+    tokens.forEach((token) => {
+      this.processToken(
+        token,
+        stack,
+        output,
+        steps,
+        'Operand',
+        remainingExpression
+      );
+      remainingExpression = remainingExpression.replace(token, '').trim();
+    });
 
     // Opróżnienie stosu
     while (stack.length) {
       output.push(stack.pop());
-      this.addStep(steps, this.expression, stack, output, 'End', '', 0);
+      this.addStep(steps, remainingExpression, stack, output, 'End', '', 0);
     }
 
     return {
@@ -139,91 +133,37 @@ export default class Infix {
     let steps = [];
     let output = [];
     let stack = [];
-    let tokens = this.expression.match(/\S+/g).reverse(); // Rozdzielanie wyrażenia na tokeny i odwrócenie ich kolejności
+    let tokens = this.expression.split('').reverse().join('').match(/\S+/g); // Rozdzielanie wyrażenia na tokeny i odwrócenie ich kolejności
+    let remainingExpression = this.expression.split('').reverse().join('');
 
-    for (let token of tokens) {
-      if (/\d/.test(token) || /[a-zA-Z]/.test(token)) {
-        // Jeśli token jest liczbą lub zmienną
-        output.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Operand',
-          token,
-          0
-        );
-      } else if (token === ')') {
-        // Jeśli token jest prawym nawiasem
-        stack.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Right Parenthesis',
-          token,
-          0
-        );
-      } else if (token === '(') {
-        // Jeśli token jest lewym nawiasem
-        while (stack.length && stack[stack.length - 1] !== ')') {
-          output.push(stack.pop());
-          this.addStep(
-            steps,
-            this.expression,
-            stack,
-            output,
-            'Operator',
-            token,
-            0
-          );
-        }
-        stack.pop(); // Usunięcie prawego nawiasu ze stosu
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Left Parenthesis',
-          token,
-          0
-        );
-      } else if (this.isOperator(token)) {
-        // Jeśli token jest operatorem
-        while (
-          stack.length &&
-          this.precedence(stack[stack.length - 1]) > this.precedence(token)
-        ) {
-          output.push(stack.pop());
-          this.addStep(
-            steps,
-            this.expression,
-            stack,
-            output,
-            'Operator',
-            token,
-            this.precedence(token)
-          );
-        }
-        stack.push(token);
-        this.addStep(
-          steps,
-          this.expression,
-          stack,
-          output,
-          'Operator',
-          token,
-          this.precedence(token)
-        );
-      }
-    }
+    tokens.forEach((token) => {
+      if (token === ')') token = '(';
+      else if (token === '(') token = ')';
+      this.processToken(
+        token,
+        stack,
+        output,
+        steps,
+        'Operand',
+        remainingExpression.split('').reverse().join('')
+      );
+      remainingExpression = remainingExpression
+        .replace(token.split('').reverse().join(''), '')
+        .trim();
+    });
 
     // Opróżnienie stosu
     while (stack.length) {
       output.push(stack.pop());
-      this.addStep(steps, this.expression, stack, output, 'End', '', 0);
+      this.addStep(
+        steps,
+        remainingExpression.split('').reverse().join(''),
+        stack,
+        output,
+        'End',
+        '',
+        0
+      );
     }
 
     return {
@@ -232,15 +172,3 @@ export default class Infix {
     };
   }
 }
-
-// Przykład użycia
-// let expression = 'A + B * C';
-// let infixExpression = new Infix(expression);
-// let postfixResult = infixExpression.toPostfix();
-// let prefixResult = infixExpression.toPrefix();
-
-// console.log('Infix:', expression);
-// console.log('Postfix:', postfixResult.expression);
-// console.log('Postfix Steps:', JSON.stringify(postfixResult.steps, null, 2));
-// console.log('Prefix:', prefixResult.expression);
-// console.log('Prefix Steps:', JSON.stringify(prefixResult.steps, null, 2));

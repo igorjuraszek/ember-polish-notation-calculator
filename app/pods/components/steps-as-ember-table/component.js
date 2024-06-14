@@ -47,7 +47,7 @@ export default class ExampleAsEmberTableComponent extends Component {
       {
         name: `Type`,
         valuePath: `Type`,
-        width: (1 / 12) * containerWidth,
+        width: (1 / 6) * containerWidth,
         minWidth: 130,
         isReorderable: true,
       },

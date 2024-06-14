@@ -1,20 +1,15 @@
 {{page-title 'Home'}}
 
-<input type='text' {{on 'input' this.onChangeExpression}} />
-
-<div>
-  Espression:
-  {{this.stepsPrefix.expression}}
-</div>
-<Example @steps={{this.stepsPrefix.steps}} />
-<br />
-<div>
-  Espression:
-  {{this.stepsPostfix.expression}}
-</div>
-<Example @steps={{this.stepsPostfix.steps}} />
-<div>-----------------------------------------------------------------</div>
-
-<ExampleAsEmberTable @steps={{this.stepsPostfix.steps}} />
+<Main
+  @expression={{this.expression}}
+  @expressionInstance={{this.expressionInstance}}
+  @convertedExpression={{this.convertedExpression}}
+  @convertFrom={{this.convertFrom}}
+  @convertTo={{this.convertTo}}
+  @steps={{this.steps}}
+  @setConvertFrom={{this.setConvertFrom}}
+  @setConvertTo={{this.setConvertTo}}
+  @onChangeExpression={{this.onChangeExpression}}
+/>
 
 {{outlet}}

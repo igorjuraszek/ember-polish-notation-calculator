@@ -25,11 +25,20 @@ export default class Infix {
   }
 
   // Dodawanie kroku do listy kroków
-  addStep(steps, expression, stack, result, type, value, precedence) {
+  addStep(
+    steps,
+    expression,
+    stack,
+    result,
+    type,
+    value,
+    precedence,
+    reverseResult = false
+  ) {
     steps.push({
       Expression: expression,
       Stack: stack.slice(),
-      Result: result.slice(),
+      Result: reverseResult ? result.slice().reverse() : result.slice(),
       Type: type,
       Value: value || '', // Ustawienie na pustą wartość jeśli brak tokenu
       Precedence: precedence,
@@ -37,10 +46,27 @@ export default class Infix {
   }
 
   // Przetwarzanie tokena w zależności od jego typu
-  processToken(token, stack, output, steps, type, remainingExpression) {
+  processToken(
+    token,
+    stack,
+    output,
+    steps,
+    type,
+    remainingExpression,
+    reverseResult = false
+  ) {
     if (/\d/.test(token) || /[a-zA-Z]/.test(token)) {
       output.push(token);
-      this.addStep(steps, remainingExpression, stack, output, type, token, 0);
+      this.addStep(
+        steps,
+        remainingExpression,
+        stack,
+        output,
+        type,
+        token,
+        0,
+        reverseResult
+      );
     } else if (token === '(') {
       stack.push(token);
       this.addStep(
@@ -50,17 +76,37 @@ export default class Infix {
         output,
         'Left Parenthesis',
         token,
-        0
+        0,
+        reverseResult
       );
     } else if (token === ')') {
-      this.processRightParenthesis(stack, output, steps, remainingExpression);
+      this.processRightParenthesis(
+        stack,
+        output,
+        steps,
+        remainingExpression,
+        reverseResult
+      );
     } else if (this.isOperator(token)) {
-      this.processOperator(token, stack, output, steps, remainingExpression);
+      this.processOperator(
+        token,
+        stack,
+        output,
+        steps,
+        remainingExpression,
+        reverseResult
+      );
     }
   }
 
   // Przetwarzanie prawego nawiasu
-  processRightParenthesis(stack, output, steps, remainingExpression) {
+  processRightParenthesis(
+    stack,
+    output,
+    steps,
+    remainingExpression,
+    reverseResult = false
+  ) {
     while (stack.length && stack[stack.length - 1] !== '(') {
       output.push(stack.pop());
     }
@@ -72,12 +118,20 @@ export default class Infix {
       output,
       'Right Parenthesis',
       ')',
-      0
+      0,
+      reverseResult
     );
   }
 
   // Przetwarzanie operatora
-  processOperator(token, stack, output, steps, remainingExpression) {
+  processOperator(
+    token,
+    stack,
+    output,
+    steps,
+    remainingExpression,
+    reverseResult = false
+  ) {
     while (
       stack.length &&
       this.precedence(stack[stack.length - 1]) >= this.precedence(token)
@@ -92,7 +146,8 @@ export default class Infix {
       output,
       'Operator',
       token,
-      this.precedence(token)
+      this.precedence(token),
+      reverseResult
     );
   }
 
@@ -145,7 +200,8 @@ export default class Infix {
         output,
         steps,
         'Operand',
-        remainingExpression.split('').reverse().join('')
+        remainingExpression.split('').reverse().join(''),
+        true // Ustawienie reverseResult na true dla prefiksu
       );
       remainingExpression = remainingExpression
         .replace(token.split('').reverse().join(''), '')
@@ -162,7 +218,8 @@ export default class Infix {
         output,
         'End',
         '',
-        0
+        0,
+        true // Ustawienie reverseResult na true dla prefiksu
       );
     }
 

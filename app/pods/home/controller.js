@@ -9,37 +9,68 @@ import { action } from '@ember/object';
 
 export default class HomeController extends Controller {
   @tracked expression;
-  @tracked stepsPrefix;
-  @tracked stepsPostfix;
-
-  constructor() {
-    super(...arguments);
-
-    // const infixInstance = new Infix();
-    // const prefixInstance = new Prefix();
-    // const postfixInstance = new Postfix();
-
-    // console.log(infixInstance);
-    // console.log(prefixInstance);
-    // console.log(postfixInstance);
-
-    this.expression = '( A + B * C - D - E - F + G ) ^ 2';
-    const infixExpression = new Infix(this.expression);
-
-    this.stepsPrefix = infixExpression.toPrefix();
-    this.stepsPostfix = infixExpression.toPostfix();
-
-    console.log(this.stepsPrefix);
-    console.log(this.stepsPostfix);
-  }
+  @tracked expressionInstance;
+  @tracked convertedExpression;
+  @tracked convertFrom;
+  @tracked convertTo;
+  @tracked steps;
 
   @action
   onChangeExpression({ target: { value } }) {
     console.log(value);
     this.expression = value;
-    const infixExpression = new Infix(this.expression);
+    this._initConversion();
+  }
 
-    this.stepsPrefix = infixExpression.toPrefix();
-    this.stepsPostfix = infixExpression.toPostfix();
+  @action
+  setConvertFrom({ target: { value } }) {
+    this.convertFrom = value;
+    this._initConversion();
+  }
+
+  @action
+  setConvertTo({ target: { value } }) {
+    this.convertTo = value;
+    this._initConversion();
+  }
+
+  _initConversion() {
+    const { expression, convertFrom, convertTo } = this;
+
+    if (!(expression && convertFrom && convertTo)) {
+      this.convertedExpression = null;
+      this.expressionInstance = null;
+      this.steps = null;
+      return;
+    }
+
+    if (convertFrom === 'prefix') {
+      this.expressionInstance = new Prefix(expression);
+    }
+    if (convertFrom === 'infix') {
+      this.expressionInstance = new Infix(expression);
+    }
+    if (convertFrom === 'postfix') {
+      this.expressionInstance = new Postfix(expression);
+    }
+
+    if (convertTo === 'prefix') {
+      const { expression: convertedExpression, steps } =
+        this.expressionInstance.toPrefix();
+      this.steps = steps;
+      this.convertedExpression = convertedExpression;
+    }
+    if (convertTo === 'infix') {
+      const { expression: convertedExpression, steps } =
+        this.expressionInstance.toInfix();
+      this.steps = steps;
+      this.convertedExpression = convertedExpression;
+    }
+    if (convertTo === 'postfix') {
+      const { expression: convertedExpression, steps } =
+        this.expressionInstance.toPostfix();
+      this.steps = steps;
+      this.convertedExpression = convertedExpression;
+    }
   }
 }

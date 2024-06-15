@@ -80,7 +80,7 @@ export default class Infix {
         reverseResult
       );
     } else if (token === ')') {
-      this.processRightParenthesis(
+      this.processRightParenthesisForPostfix(
         stack,
         output,
         steps,
@@ -99,8 +99,8 @@ export default class Infix {
     }
   }
 
-  // Przetwarzanie prawego nawiasu
-  processRightParenthesis(
+  // Przetwarzanie prawego nawiasu dla postfiksu
+  processRightParenthesisForPostfix(
     stack,
     output,
     steps,
@@ -118,6 +118,30 @@ export default class Infix {
       output,
       'Right Parenthesis',
       ')',
+      0,
+      reverseResult
+    );
+  }
+
+  // Przetwarzanie prawego nawiasu dla prefiksu
+  processRightParenthesisForPrefix(
+    stack,
+    output,
+    steps,
+    remainingExpression,
+    reverseResult = false
+  ) {
+    while (stack.length && stack[stack.length - 1] !== '(') {
+      output.push(stack.pop());
+    }
+    stack.pop(); // Usunięcie lewego nawiasu ze stosu
+    this.addStep(
+      steps,
+      remainingExpression,
+      stack,
+      output,
+      'Right Parenthesis',
+      '(',
       0,
       reverseResult
     );
@@ -188,24 +212,26 @@ export default class Infix {
     let steps = [];
     let output = [];
     let stack = [];
-    let tokens = this.expression.split('').reverse().join('').match(/\S+/g); // Rozdzielanie wyrażenia na tokeny i odwrócenie ich kolejności
-    let remainingExpression = this.expression.split('').reverse().join('');
+    let tokens = this.expression.split('').reverse().join(''); // Odwrócenie kolejności znaków
+    tokens = tokens
+      .replace(/\(/g, 'temp')
+      .replace(/\)/g, '(')
+      .replace(/temp/g, ')'); // Zamiana nawiasów
+    tokens = tokens.match(/\S+/g);
+
+    let remainingExpression = tokens.join(' ');
 
     tokens.forEach((token) => {
-      if (token === ')') token = '(';
-      else if (token === '(') token = ')';
-      this.processToken(
+      this.processTokenForPrefix(
         token,
         stack,
         output,
         steps,
         'Operand',
-        remainingExpression.split('').reverse().join(''),
+        remainingExpression,
         true // Ustawienie reverseResult na true dla prefiksu
       );
-      remainingExpression = remainingExpression
-        .replace(token.split('').reverse().join(''), '')
-        .trim();
+      remainingExpression = remainingExpression.replace(token, '').trim();
     });
 
     // Opróżnienie stosu
@@ -213,7 +239,7 @@ export default class Infix {
       output.push(stack.pop());
       this.addStep(
         steps,
-        remainingExpression.split('').reverse().join(''),
+        remainingExpression,
         stack,
         output,
         'End',
@@ -227,5 +253,87 @@ export default class Infix {
       expression: output.reverse().join(' '), // Odwrócenie wynikowego wyrażenia
       steps: steps,
     };
+  }
+
+  // Przetwarzanie tokena dla prefiksu
+  processTokenForPrefix(
+    token,
+    stack,
+    output,
+    steps,
+    type,
+    remainingExpression,
+    reverseResult = false
+  ) {
+    if (/\d/.test(token) || /[a-zA-Z]/.test(token)) {
+      output.push(token);
+      this.addStep(
+        steps,
+        remainingExpression,
+        stack,
+        output,
+        type,
+        token,
+        0,
+        reverseResult
+      );
+    } else if (token === '(') {
+      stack.push(token);
+      this.addStep(
+        steps,
+        remainingExpression,
+        stack,
+        output,
+        'Left Parenthesis',
+        token,
+        0,
+        reverseResult
+      );
+    } else if (token === ')') {
+      this.processRightParenthesisForPrefix(
+        stack,
+        output,
+        steps,
+        remainingExpression,
+        reverseResult
+      );
+    } else if (this.isOperator(token)) {
+      this.processOperatorForPrefix(
+        token,
+        stack,
+        output,
+        steps,
+        remainingExpression,
+        reverseResult
+      );
+    }
+  }
+
+  // Przetwarzanie operatora dla prefiksu
+  processOperatorForPrefix(
+    token,
+    stack,
+    output,
+    steps,
+    remainingExpression,
+    reverseResult = false
+  ) {
+    while (
+      stack.length &&
+      this.precedence(stack[stack.length - 1]) > this.precedence(token)
+    ) {
+      output.push(stack.pop());
+    }
+    stack.push(token);
+    this.addStep(
+      steps,
+      remainingExpression,
+      stack,
+      output,
+      'Operator',
+      token,
+      this.precedence(token),
+      reverseResult
+    );
   }
 }

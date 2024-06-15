@@ -3,6 +3,7 @@
 module.exports = function (environment) {
   const ENV = {
     modulePrefix: 'ember-polish-notation-calculator',
+    podModulePrefix: 'ember-polish-notation-calculator/pods',
     environment,
     rootURL: '/',
     locationType: 'history',

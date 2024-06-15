@@ -1,0 +1,155 @@
+<div class='container mt-5'>
+  <h1 class='text-center'>Polish Notation Calculator</h1>
+  <div class='form-group'>
+    <label for='notationInput'>Enter Expression:</label>
+    <input
+      type='text'
+      class='form-control'
+      id='notationInput'
+      placeholder='Enter your expression here'
+      {{on 'input' @onChangeExpression}}
+    />
+    <small class='form-text text-muted'>Characters should be seperated by space.</small>
+  </div>
+  <div class='d-flex justify-content-evenly'>
+
+    <div class='mt-4'>
+      <h4>From</h4>
+      <div class='form-check'>
+        {{#let (eq @convertFrom 'prefix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='fromNotation'
+            id='fromPrefix'
+            value='prefix'
+            {{on 'click' @setConvertFrom}}
+            checked={{checked}}
+            disabled={{eq @convertTo 'prefix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='fromPrefix'
+          >
+            Prefix
+          </label>
+        {{/let}}
+      </div>
+      <div class='form-check'>
+        {{#let (eq @convertFrom 'infix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='fromNotation'
+            id='fromInfix'
+            value='infix'
+            checked={{checked}}
+            {{on 'click' @setConvertFrom}}
+            disabled={{eq @convertTo 'infix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='fromInfix'
+          >
+            Infix
+          </label>
+        {{/let}}
+      </div>
+      <div class='form-check'>
+        {{#let (eq @convertFrom 'postfix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='fromNotation'
+            id='fromPostfix'
+            value='postfix'
+            checked={{checked}}
+            {{on 'click' @setConvertFrom}}
+            disabled={{eq @convertTo 'postfix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='fromPostfix'
+          >
+            Postfix
+          </label>
+        {{/let}}
+      </div>
+    </div>
+    <div class='mt-4'>
+      <h4>To</h4>
+      <div class='form-check'>
+        {{#let (eq @convertTo 'prefix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='toNotation'
+            id='toPrefix'
+            value='prefix'
+            checked={{checked}}
+            {{on 'click' @setConvertTo}}
+            disabled={{eq @convertFrom 'prefix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='toPrefix'
+          >
+            Prefix
+          </label>
+        {{/let}}
+      </div>
+      <div class='form-check'>
+        {{#let (eq @convertTo 'infix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='toNotation'
+            id='toInfix'
+            value='infix'
+            checked={{checked}}
+            {{on 'click' @setConvertTo}}
+            disabled={{eq @convertFrom 'infix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='toInfix'
+          >
+            Infix
+          </label>
+        {{/let}}
+      </div>
+      <div class='form-check'>
+        {{#let (eq @convertTo 'postfix') as |checked|}}
+          <input
+            class='form-check-input {{if checked "pointer-events-none"}}'
+            type='checkbox'
+            name='toNotation'
+            id='toPostfix'
+            value='postfix'
+            checked={{checked}}
+            {{on 'click' @setConvertTo}}
+            disabled={{eq @convertFrom 'postfix'}}
+          />
+          <label
+            class='form-check-label {{if checked "pointer-events-none"}}'
+            for='toPostfix'
+          >
+            Postfix
+          </label>
+        {{/let}}
+      </div>
+    </div>
+  </div>
+</div>
+
+{{#if @convertedExpression}}
+  <div class='d-flex justify-content-center py-4'>
+    <span class='h3'>
+      Expression:
+      {{@convertedExpression}}
+
+    </span>
+  </div>
+
+  <StepsAsEmberTable @steps={{@steps}} />
+{{/if}}
